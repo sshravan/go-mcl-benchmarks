@@ -3,6 +3,7 @@ package main
 import (
 	"math"
 	"math/rand"
+	"time"
 
 	"github.com/alinush/go-mcl"
 )
@@ -32,6 +33,7 @@ func generateFr(count uint64) []mcl.Fr {
 }
 
 func generateGT(count uint64) []mcl.GT {
+	rand.Seed(time.Now().UnixNano())
 	N := int64(math.MaxInt64)
 	var v int64
 	base := make([]mcl.GT, count)
