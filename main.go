@@ -271,6 +271,18 @@ func BenchmarkPairing() {
 		})
 		Summary(size[i], "GTPow", "", &results)
 		// =============================================
+		// b.Run(fmt.Sprintf("%d/FinalExp;", size[i]),
+		results = testing.Benchmark(func(t *testing.B) {
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				for j := 0; j < len(baseG1); j++ {
+					mcl.FinalExp(&baseGT[j], &baseGT[j])
+				}
+			}
+		})
+		Summary(size[i], "FinalExp", "", &results)
+
+		// =============================================
 		// b.Run(fmt.Sprintf("%d/MillerLoop;", size[i]),
 		results = testing.Benchmark(func(t *testing.B) {
 			t.ResetTimer()
@@ -283,16 +295,43 @@ func BenchmarkPairing() {
 		Summary(size[i], "MillerLoop", "", &results)
 
 		// =============================================
-		// b.Run(fmt.Sprintf("%d/FinalExp;", size[i]),
+		// b.Run(fmt.Sprintf("%d/MillerLoopVec;", size[i]),
+		length = 2
 		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.GT
 			t.ResetTimer()
 			for i := 0; i < t.N; i++ {
-				for j := 0; j < len(baseG1); j++ {
-					mcl.FinalExp(&baseGT[j], &baseGT[j])
-				}
+				mcl.MillerLoopVec(&result, baseG1[:length], baseG2[:length])
 			}
 		})
-		Summary(size[i], "FinalExp", "", &results)
+		Summary(1, "MillerLoopVec", fmt.Sprintf("size %s, ", humanize.Comma(int64(length))), &results)
+		Summary(uint64(length), "MillerLoopVec", fmt.Sprintf("per MillerLoop, "), &results)
+
+		// =============================================
+		// b.Run(fmt.Sprintf("%d/MillerLoopVec;", size[i]),
+		length = 32
+		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.GT
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				mcl.MillerLoopVec(&result, baseG1[:length], baseG2[:length])
+			}
+		})
+		Summary(1, "MillerLoopVec", fmt.Sprintf("size %s, ", humanize.Comma(int64(length))), &results)
+		Summary(uint64(length), "MillerLoopVec", fmt.Sprintf("per MillerLoop, "), &results)
+
+		// =============================================
+		// b.Run(fmt.Sprintf("%d/MillerLoopVec;", size[i]),
+		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.GT
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				mcl.MillerLoopVec(&result, baseG1, baseG2)
+			}
+		})
+		Summary(1, "MillerLoopVec", fmt.Sprintf("size %s, ", humanize.Comma(int64(size[i]))), &results)
+		Summary(size[i], "MillerLoopVec", fmt.Sprintf("per MillerLoop, "), &results)
+		fmt.Println("=============================================")
 
 		// =============================================
 		// b.Run(fmt.Sprintf("%d/NaivePairing;", size[i]),
