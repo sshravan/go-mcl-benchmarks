@@ -1,0 +1,6 @@
+temp/*
+go-mcl-benchmarks
+keygen/
+pkvk*/
+logs*.json*
+*result*.csv*
