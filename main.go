@@ -175,6 +175,7 @@ func BenchmarkPairing() {
 		baseG1 := generateG1(size[i])
 		baseG2 := generateG2(size[i])
 		baseGT := generateGT(size[i])
+		expoFr := generateFr(size[i])
 		fmt.Println("Done generating the data")
 
 		var results testing.BenchmarkResult
@@ -192,6 +193,19 @@ func BenchmarkPairing() {
 		})
 		Summary(size[i], "GTMul", "", &results)
 
+		// =============================================
+		// b.Run(fmt.Sprintf("%d/GTMul;", size[i]),
+		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.GT
+			result.SetString("1", 10)
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				for j := 0; j < len(baseG1); j++ {
+					mcl.GTPow(&result, &baseGT[j], &expoFr[j])
+				}
+			}
+		})
+		Summary(size[i], "GTPow", "", &results)
 		// =============================================
 		// b.Run(fmt.Sprintf("%d/MillerLoop;", size[i]),
 		results = testing.Benchmark(func(t *testing.B) {
