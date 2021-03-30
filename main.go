@@ -52,6 +52,18 @@ func BenchmarkExponentiation() {
 			t.ResetTimer()
 			for i := 0; i < t.N; i++ {
 				for j := 0; j < len(baseG1); j++ {
+					mcl.G1Neg(&result, &baseG1[j])
+				}
+			}
+		})
+		Summary(size[i], "G1Neg", "", &results)
+		// =============================================
+		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.G1
+			result.SetString("1", 10)
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				for j := 0; j < len(baseG1); j++ {
 					mcl.G1Add(&result, &result, &baseG1[j])
 				}
 			}
@@ -65,13 +77,13 @@ func BenchmarkExponentiation() {
 			t.ResetTimer()
 			for i := 0; i < t.N; i++ {
 				for j := 0; j < len(baseG1); j++ {
-					mcl.G1Neg(&result, &baseG1[j])
+					mcl.G1Sub(&result, &result, &baseG1[j])
 				}
 			}
 		})
-		Summary(size[i], "G1Neg", "", &results)
-
+		Summary(size[i], "G1Sub", "", &results)
 		// =============================================
+
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.G1
 			t.ResetTimer()
@@ -124,25 +136,36 @@ func BenchmarkExponentiation() {
 			result.SetString("1", 10)
 			t.ResetTimer()
 			for i := 0; i < t.N; i++ {
-				for j := 0; j < len(baseG1); j++ {
-					mcl.G2Add(&result, &result, &baseG2[j])
-				}
-			}
-		})
-		Summary(size[i], "G2Add", "", &results)
-
-		// =============================================
-		results = testing.Benchmark(func(t *testing.B) {
-			var result mcl.G2
-			result.SetString("1", 10)
-			t.ResetTimer()
-			for i := 0; i < t.N; i++ {
 				for j := 0; j < len(baseG2); j++ {
 					mcl.G2Neg(&result, &baseG2[j])
 				}
 			}
 		})
 		Summary(size[i], "G2Neg", "", &results)
+		// =============================================
+		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.G2
+			result.SetString("1", 10)
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				for j := 0; j < len(baseG1); j++ {
+					mcl.G2Add(&result, &result, &baseG2[j])
+				}
+			}
+		})
+		Summary(size[i], "G2Add", "", &results)
+		// =============================================
+		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.G2
+			result.SetString("1", 10)
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				for j := 0; j < len(baseG1); j++ {
+					mcl.G2Sub(&result, &result, &baseG2[j])
+				}
+			}
+		})
+		Summary(size[i], "G2Sub", "", &results)
 
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
