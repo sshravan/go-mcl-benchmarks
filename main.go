@@ -61,6 +61,19 @@ func BenchmarkExponentiation() {
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.G1
+			result.SetString("1", 10)
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				for j := 0; j < len(baseG1); j++ {
+					mcl.G1Neg(&result, &baseG1[j])
+				}
+			}
+		})
+		Summary(size[i], "G1Neg", "", &results)
+
+		// =============================================
+		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.G1
 			t.ResetTimer()
 			for i := 0; i < t.N; i++ {
 				for j := 0; j < len(expoFr); j++ {
@@ -104,6 +117,7 @@ func BenchmarkExponentiation() {
 		Summary(1, "G1MulVec", fmt.Sprintf("size %s, ", humanize.Comma(int64(size[i]))), &results)
 		Summary(size[i], "G1MulVec", fmt.Sprintf("per exp, "), &results)
 
+		fmt.Println("=============================================")
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.G2
@@ -116,6 +130,19 @@ func BenchmarkExponentiation() {
 			}
 		})
 		Summary(size[i], "G2Add", "", &results)
+
+		// =============================================
+		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.G2
+			result.SetString("1", 10)
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				for j := 0; j < len(baseG2); j++ {
+					mcl.G2Neg(&result, &baseG2[j])
+				}
+			}
+		})
+		Summary(size[i], "G2Neg", "", &results)
 
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
@@ -163,6 +190,20 @@ func BenchmarkExponentiation() {
 		})
 		Summary(1, "G2MulVec", fmt.Sprintf("size %s, ", humanize.Comma(int64(size[i]))), &results)
 		Summary(size[i], "G2MulVec", fmt.Sprintf("per exp, "), &results)
+		fmt.Println("=============================================")
+		// =============================================
+		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.Fr
+			result.SetString("1", 10)
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				for j := 0; j < len(expoFr); j++ {
+					mcl.FrNeg(&result, &expoFr[j])
+				}
+			}
+		})
+		Summary(size[i], "FrNeg", "", &results)
+		fmt.Println("=============================================")
 	}
 }
 
@@ -282,5 +323,6 @@ func BenchmarkPairing() {
 		})
 		Summary(1, "Multi-Pairing", fmt.Sprintf("size %s, ", humanize.Comma(int64(size[i]))), &results)
 		Summary(size[i], "Multi-Pairing", fmt.Sprintf("per pairing, "), &results)
+		fmt.Println("=============================================")
 	}
 }
