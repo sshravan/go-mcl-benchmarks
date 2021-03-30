@@ -28,7 +28,7 @@ func Summary(size uint64, op string, aux string, r *testing.BenchmarkResult) {
 	// fmt.Printf("%-60s %20v\n", out, a)
 
 	p := message.NewPrinter(language.English)
-	a := float64(r.NsPerOp()/int64(size)) / float64(1000)
+	a := float64(r.NsPerOp()/int64(size)) / float64(1000) // Convert ns to us
 	out := fmt.Sprintf("Time per %s (%s%d iters):", op, aux, r.N)
 	p.Printf("%-60s %20.3f us\n", out, a)
 }
@@ -226,6 +226,18 @@ func BenchmarkExponentiation() {
 			}
 		})
 		Summary(size[i], "FrNeg", "", &results)
+		// =============================================
+		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.Fr
+			result.SetString("1", 10)
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				for j := 0; j < len(expoFr); j++ {
+					mcl.FrInv(&result, &expoFr[j])
+				}
+			}
+		})
+		Summary(size[i], "FrInv", "", &results)
 		fmt.Println("=============================================")
 	}
 }
@@ -385,6 +397,59 @@ func BenchmarkPairing() {
 		})
 		Summary(1, "Multi-Pairing", fmt.Sprintf("size %s, ", humanize.Comma(int64(size[i]))), &results)
 		Summary(size[i], "Multi-Pairing", fmt.Sprintf("per pairing, "), &results)
+		fmt.Println("=============================================")
+		// =============================================
+		results = testing.Benchmark(func(t *testing.B) {
+			var a mcl.Fr
+			a.Random()
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				a.IsEqual(&expoFr[0])
+				for j := 0; j < len(expoFr)-1; j++ {
+					expoFr[j].IsEqual(&expoFr[j+1])
+				}
+			}
+		})
+		Summary(size[i], "FrIsEqual", fmt.Sprintf("size %s, ", humanize.Comma(int64(size[i]))), &results)
+		// =============================================
+		results = testing.Benchmark(func(t *testing.B) {
+			var a mcl.G1
+			a.Random()
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				a.IsEqual(&baseG1[0])
+				for j := 0; j < len(baseG1)-1; j++ {
+					baseG1[j].IsEqual(&baseG1[j+1])
+				}
+			}
+		})
+		Summary(size[i], "G1IsEqual", fmt.Sprintf("size %s, ", humanize.Comma(int64(size[i]))), &results)
+		// =============================================
+		results = testing.Benchmark(func(t *testing.B) {
+			var a mcl.G2
+			a.Random()
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				a.IsEqual(&baseG2[0])
+				for j := 0; j < len(baseG2)-1; j++ {
+					baseG2[j].IsEqual(&baseG2[j+1])
+				}
+			}
+		})
+		Summary(size[i], "G2IsEqual", fmt.Sprintf("size %s, ", humanize.Comma(int64(size[i]))), &results)
+		// =============================================
+		results = testing.Benchmark(func(t *testing.B) {
+			var a mcl.GT
+			a.SetInt64(1)
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				a.IsEqual(&baseGT[0])
+				for j := 0; j < len(baseGT)-1; j++ {
+					baseGT[j].IsEqual(&baseGT[j+1])
+				}
+			}
+		})
+		Summary(size[i], "GTIsEqual", fmt.Sprintf("size %s, ", humanize.Comma(int64(size[i]))), &results)
 		fmt.Println("=============================================")
 	}
 }
