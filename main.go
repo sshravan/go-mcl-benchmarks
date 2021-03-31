@@ -28,7 +28,7 @@ func Summary(size uint64, op string, aux string, r *testing.BenchmarkResult) {
 	// fmt.Printf("%-60s %20v\n", out, a)
 
 	p := message.NewPrinter(language.English)
-	a := float64(r.NsPerOp()/int64(size)) / float64(1000) // Convert ns to us
+	a := float64(r.NsPerOp()) / float64(size) / float64(1000) // Convert ns to us
 	out := fmt.Sprintf("Time per %s (%s%d iters):", op, aux, r.N)
 	p.Printf("%-60s %20.3f us\n", out, a)
 }
