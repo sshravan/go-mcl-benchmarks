@@ -43,3 +43,14 @@ func generateGT(count uint64) []mcl.GT {
 	}
 	return base
 }
+
+func getKeyValues(db map[string]float64) ([]string, []float64) {
+
+	keys := make([]string, 0, len(db))
+	values := make([]float64, 0, len(db))
+	for k, v := range db {
+		keys = append(keys, k)
+		values = append(values, v)
+	}
+	return keys, values
+}

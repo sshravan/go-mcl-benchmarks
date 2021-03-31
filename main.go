@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"testing"
 
 	"github.com/alinush/go-mcl"
@@ -17,8 +19,20 @@ func main() {
 	fmt.Println("Hello, World!")
 	mcl.InitFromString("bls12-381")
 
-	BenchmarkExponentiation()
-	BenchmarkPairing()
+	var db map[string]float64
+	db = make(map[string]float64)
+	BenchmarkExponentiation(&db)
+	BenchmarkPairing(&db)
+	// keys, _ := getKeyValues(db)
+
+	json, err := json.Marshal(db)
+	if err != nil {
+		panic(err)
+	}
+	err = ioutil.WriteFile("benchmarking-results-nanoseconds.json", json, 0666)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func Summary(size uint64, op string, aux string, r *testing.BenchmarkResult) {
@@ -33,11 +47,13 @@ func Summary(size uint64, op string, aux string, r *testing.BenchmarkResult) {
 	p.Printf("%-60s %20.3f us\n", out, a)
 }
 
-func BenchmarkExponentiation() {
+func BenchmarkExponentiation(db *map[string]float64) {
 
 	var size []uint64
-	size = []uint64{1000}
 	var length int
+
+	size = []uint64{1000}
+
 	for i := 0; i < len(size); i++ {
 		baseG1 := generateG1(size[i])
 		baseG2 := generateG2(size[i])
@@ -57,6 +73,7 @@ func BenchmarkExponentiation() {
 			}
 		})
 		Summary(size[i], "G1Neg", "", &results)
+		(*db)["G1Neg"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.G1
@@ -69,7 +86,7 @@ func BenchmarkExponentiation() {
 			}
 		})
 		Summary(size[i], "G1Add", "", &results)
-
+		(*db)["G1Add"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.G1
@@ -82,6 +99,7 @@ func BenchmarkExponentiation() {
 			}
 		})
 		Summary(size[i], "G1Sub", "", &results)
+		(*db)["G1Sub"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 
 		results = testing.Benchmark(func(t *testing.B) {
@@ -94,6 +112,7 @@ func BenchmarkExponentiation() {
 			}
 		})
 		Summary(size[i], "G1Mul", "", &results)
+		(*db)["G1Mul"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		length = 2
 		results = testing.Benchmark(func(t *testing.B) {
@@ -105,7 +124,8 @@ func BenchmarkExponentiation() {
 		})
 		Summary(1, "G1MulVec", fmt.Sprintf("size %s; ", humanize.Comma(int64(length))), &results)
 		Summary(uint64(length), "G1MulVec", fmt.Sprintf("per exp; "), &results)
-
+		(*db)[fmt.Sprintf("G1MulVec%d", length)] = float64(results.NsPerOp())
+		(*db)[fmt.Sprintf("G1MulVec%dAvg", length)] = float64(results.NsPerOp()) / float64(length)
 		// =============================================
 		length = 32
 		results = testing.Benchmark(func(t *testing.B) {
@@ -117,7 +137,8 @@ func BenchmarkExponentiation() {
 		})
 		Summary(1, "G1MulVec", fmt.Sprintf("size %s; ", humanize.Comma(int64(length))), &results)
 		Summary(uint64(length), "G1MulVec", fmt.Sprintf("per exp; "), &results)
-
+		(*db)[fmt.Sprintf("G1MulVec%d", length)] = float64(results.NsPerOp())
+		(*db)[fmt.Sprintf("G1MulVec%dAvg", length)] = float64(results.NsPerOp()) / float64(length)
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.G1
@@ -128,7 +149,8 @@ func BenchmarkExponentiation() {
 		})
 		Summary(1, "G1MulVec", fmt.Sprintf("size %s; ", humanize.Comma(int64(size[i]))), &results)
 		Summary(size[i], "G1MulVec", fmt.Sprintf("per exp; "), &results)
-
+		(*db)[fmt.Sprintf("G1MulVec%d", size[i])] = float64(results.NsPerOp())
+		(*db)[fmt.Sprintf("G1MulVec%dAvg", size[i])] = float64(results.NsPerOp()) / float64(size[i])
 		fmt.Println("=============================================")
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
@@ -142,6 +164,7 @@ func BenchmarkExponentiation() {
 			}
 		})
 		Summary(size[i], "G2Neg", "", &results)
+		(*db)["G2Neg"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.G2
@@ -154,6 +177,7 @@ func BenchmarkExponentiation() {
 			}
 		})
 		Summary(size[i], "G2Add", "", &results)
+		(*db)["G2Add"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.G2
@@ -166,7 +190,7 @@ func BenchmarkExponentiation() {
 			}
 		})
 		Summary(size[i], "G2Sub", "", &results)
-
+		(*db)["G2Sub"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.G2
@@ -178,7 +202,7 @@ func BenchmarkExponentiation() {
 			}
 		})
 		Summary(size[i], "G2Mul", "", &results)
-
+		(*db)["G2Mul"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		length = 2
 		results = testing.Benchmark(func(t *testing.B) {
@@ -190,7 +214,8 @@ func BenchmarkExponentiation() {
 		})
 		Summary(1, "G2MulVec", fmt.Sprintf("size %s; ", humanize.Comma(int64(length))), &results)
 		Summary(uint64(length), "G2MulVec", fmt.Sprintf("per exp; "), &results)
-
+		(*db)[fmt.Sprintf("G2MulVec%d", length)] = float64(results.NsPerOp())
+		(*db)[fmt.Sprintf("G2MulVec%dAvg", length)] = float64(results.NsPerOp()) / float64(length)
 		// =============================================
 		length = 32
 		results = testing.Benchmark(func(t *testing.B) {
@@ -202,7 +227,8 @@ func BenchmarkExponentiation() {
 		})
 		Summary(1, "G2MulVec", fmt.Sprintf("size %s; ", humanize.Comma(int64(length))), &results)
 		Summary(uint64(length), "G2MulVec", fmt.Sprintf("per exp; "), &results)
-
+		(*db)[fmt.Sprintf("G2MulVec%d", length)] = float64(results.NsPerOp())
+		(*db)[fmt.Sprintf("G2MulVec%dAvg", length)] = float64(results.NsPerOp()) / float64(length)
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.G2
@@ -213,6 +239,9 @@ func BenchmarkExponentiation() {
 		})
 		Summary(1, "G2MulVec", fmt.Sprintf("size %s; ", humanize.Comma(int64(size[i]))), &results)
 		Summary(size[i], "G2MulVec", fmt.Sprintf("per exp; "), &results)
+		(*db)[fmt.Sprintf("G2MulVec%d", size[i])] = float64(results.NsPerOp())
+		(*db)[fmt.Sprintf("G2MulVec%dAvg", size[i])] = float64(results.NsPerOp()) / float64(size[i])
+
 		fmt.Println("=============================================")
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
@@ -226,6 +255,7 @@ func BenchmarkExponentiation() {
 			}
 		})
 		Summary(size[i], "FrNeg", "", &results)
+		(*db)["FrNeg"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.Fr
@@ -238,15 +268,18 @@ func BenchmarkExponentiation() {
 			}
 		})
 		Summary(size[i], "FrInv", "", &results)
+		(*db)["FrInv"] = float64(results.NsPerOp()) / float64(size[i])
 		fmt.Println("=============================================")
 	}
 }
 
-func BenchmarkPairing() {
+func BenchmarkPairing(db *map[string]float64) {
 
 	var size []uint64
-	size = []uint64{1_000}
 	var length int
+
+	size = []uint64{1_000}
+
 	for i := 0; i < len(size); i++ {
 		baseG1 := generateG1(size[i])
 		baseG2 := generateG2(size[i])
@@ -267,7 +300,7 @@ func BenchmarkPairing() {
 			}
 		})
 		Summary(size[i], "GTMul", "", &results)
-
+		(*db)["GTMul"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.GT
@@ -280,6 +313,7 @@ func BenchmarkPairing() {
 			}
 		})
 		Summary(size[i], "GTPow", "", &results)
+		(*db)["GTPow"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			t.ResetTimer()
@@ -290,7 +324,7 @@ func BenchmarkPairing() {
 			}
 		})
 		Summary(size[i], "FinalExp", "", &results)
-
+		(*db)["FinalExp"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			t.ResetTimer()
@@ -301,7 +335,7 @@ func BenchmarkPairing() {
 			}
 		})
 		Summary(size[i], "MillerLoop", "", &results)
-
+		(*db)["MillerLoop"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		length = 2
 		results = testing.Benchmark(func(t *testing.B) {
@@ -313,7 +347,8 @@ func BenchmarkPairing() {
 		})
 		Summary(1, "MillerLoopVec", fmt.Sprintf("size %s; ", humanize.Comma(int64(length))), &results)
 		Summary(uint64(length), "MillerLoopVec", fmt.Sprintf("per MillerLoop; "), &results)
-
+		(*db)[fmt.Sprintf("MillerLoopVec%d", length)] = float64(results.NsPerOp())
+		(*db)[fmt.Sprintf("MillerLoopVec%dAvg", length)] = float64(results.NsPerOp()) / float64(length)
 		// =============================================
 		length = 32
 		results = testing.Benchmark(func(t *testing.B) {
@@ -325,7 +360,8 @@ func BenchmarkPairing() {
 		})
 		Summary(1, "MillerLoopVec", fmt.Sprintf("size %s; ", humanize.Comma(int64(length))), &results)
 		Summary(uint64(length), "MillerLoopVec", fmt.Sprintf("per MillerLoop; "), &results)
-
+		(*db)[fmt.Sprintf("MillerLoopVec%d", length)] = float64(results.NsPerOp())
+		(*db)[fmt.Sprintf("MillerLoopVec%dAvg", length)] = float64(results.NsPerOp()) / float64(length)
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.GT
@@ -336,6 +372,8 @@ func BenchmarkPairing() {
 		})
 		Summary(1, "MillerLoopVec", fmt.Sprintf("size %s; ", humanize.Comma(int64(size[i]))), &results)
 		Summary(size[i], "MillerLoopVec", fmt.Sprintf("per MillerLoop; "), &results)
+		(*db)[fmt.Sprintf("MillerLoopVec%d", size[i])] = float64(results.NsPerOp())
+		(*db)[fmt.Sprintf("MillerLoopVec%dAvg", size[i])] = float64(results.NsPerOp()) / float64(size[i])
 		fmt.Println("=============================================")
 
 		// =============================================
@@ -348,7 +386,7 @@ func BenchmarkPairing() {
 			}
 		})
 		Summary(size[i], "Pairing", "", &results)
-
+		(*db)["Pairing"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		length = 2
 		results = testing.Benchmark(func(t *testing.B) {
@@ -361,7 +399,8 @@ func BenchmarkPairing() {
 		})
 		Summary(1, "Multi-Pairing", fmt.Sprintf("size %s; ", humanize.Comma(int64(length))), &results)
 		Summary(uint64(length), "Multi-Pairing", fmt.Sprintf("per pairing; "), &results)
-
+		(*db)[fmt.Sprintf("MultiPairing%d", length)] = float64(results.NsPerOp())
+		(*db)[fmt.Sprintf("MultiPairing%dAvg", length)] = float64(results.NsPerOp()) / float64(length)
 		// =============================================
 		length = 32
 		results = testing.Benchmark(func(t *testing.B) {
@@ -374,7 +413,8 @@ func BenchmarkPairing() {
 		})
 		Summary(1, "Multi-Pairing", fmt.Sprintf("size %s; ", humanize.Comma(int64(length))), &results)
 		Summary(uint64(length), "Multi-Pairing", fmt.Sprintf("per pairing; "), &results)
-
+		(*db)[fmt.Sprintf("MultiPairing%d", length)] = float64(results.NsPerOp())
+		(*db)[fmt.Sprintf("MultiPairing%dAvg", length)] = float64(results.NsPerOp()) / float64(length)
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.GT
@@ -386,6 +426,8 @@ func BenchmarkPairing() {
 		})
 		Summary(1, "Multi-Pairing", fmt.Sprintf("size %s; ", humanize.Comma(int64(size[i]))), &results)
 		Summary(size[i], "Multi-Pairing", fmt.Sprintf("per pairing; "), &results)
+		(*db)[fmt.Sprintf("MultiPairing%d", size[i])] = float64(results.NsPerOp())
+		(*db)[fmt.Sprintf("MultiPairing%dAvg", size[i])] = float64(results.NsPerOp()) / float64(size[i])
 		fmt.Println("=============================================")
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
@@ -400,6 +442,7 @@ func BenchmarkPairing() {
 			}
 		})
 		Summary(size[i], "FrIsEqual", fmt.Sprintf("size %s; ", humanize.Comma(int64(size[i]))), &results)
+		(*db)["FrIsEqual"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			var a mcl.G1
@@ -413,6 +456,7 @@ func BenchmarkPairing() {
 			}
 		})
 		Summary(size[i], "G1IsEqual", fmt.Sprintf("size %s; ", humanize.Comma(int64(size[i]))), &results)
+		(*db)["G1IsEqual"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			var a mcl.G2
@@ -426,6 +470,7 @@ func BenchmarkPairing() {
 			}
 		})
 		Summary(size[i], "G2IsEqual", fmt.Sprintf("size %s; ", humanize.Comma(int64(size[i]))), &results)
+		(*db)["G2IsEqual"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		results = testing.Benchmark(func(t *testing.B) {
 			var a mcl.GT
@@ -439,6 +484,7 @@ func BenchmarkPairing() {
 			}
 		})
 		Summary(size[i], "GTIsEqual", fmt.Sprintf("size %s; ", humanize.Comma(int64(size[i]))), &results)
+		(*db)["GTIsEqual"] = float64(results.NsPerOp()) / float64(size[i])
 		fmt.Println("=============================================")
 	}
 }
