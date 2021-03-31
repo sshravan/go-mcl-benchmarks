@@ -33,6 +33,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("Data saved to: benchmarking-results-nanoseconds.json")
 }
 
 func Summary(size uint64, op string, aux string, r *testing.BenchmarkResult) {
