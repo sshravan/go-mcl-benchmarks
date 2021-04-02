@@ -280,6 +280,32 @@ func BenchmarkExponentiation(db *map[string]float64) {
 			result.SetString("1", 10)
 			t.ResetTimer()
 			for i := 0; i < t.N; i++ {
+				for j := 0; j < len(expoFr); j++ {
+					mcl.FrAdd(&result, &result, &expoFr[j])
+				}
+			}
+		})
+		Summary(size[i], "FrAdd", "", &results)
+		(*db)["FrAdd"] = float64(results.NsPerOp()) / float64(size[i])
+		// =============================================
+		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.Fr
+			result.SetString("1", 10)
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				for j := 0; j < len(expoFr); j++ {
+					mcl.FrSub(&result, &result, &expoFr[j])
+				}
+			}
+		})
+		Summary(size[i], "FrSub", "", &results)
+		(*db)["FrSub"] = float64(results.NsPerOp()) / float64(size[i])
+		// =============================================
+		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.Fr
+			result.SetString("1", 10)
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
 				mcl.FrMul(&result, &result, &expoFr[0])
 				for j := 1; j < len(expoFr); j++ {
 					mcl.FrMul(&result, &expoFr[j-1], &expoFr[j])
@@ -288,6 +314,20 @@ func BenchmarkExponentiation(db *map[string]float64) {
 		})
 		Summary(size[i], "FrMul", "", &results)
 		(*db)["FrMul"] = float64(results.NsPerOp()) / float64(size[i])
+		// =============================================
+		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.Fr
+			result.SetString("1", 10)
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				dst := make([]mcl.Fr, len(expoFr))
+				for j := 0; j < len(expoFr); j++ {
+					dst[i] = expoFr[0]
+				}
+			}
+		})
+		Summary(size[i], "FrCopy", "", &results)
+		(*db)["FrCopy"] = float64(results.NsPerOp()) / float64(size[i])
 		fmt.Println(sep_string(""))
 	}
 }
