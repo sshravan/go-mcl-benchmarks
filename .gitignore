@@ -4,4 +4,4 @@ keygen/
 pkvk*/
 logs*.json*
 *result*.csv*
-benchmarking-results-nanoseconds.json
+benchmarking-results-nanoseconds*
