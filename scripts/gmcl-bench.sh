@@ -8,3 +8,4 @@ scriptdir=$(cd $(dirname $0); pwd -P)
 sourcedir=$(cd $scriptdir/..; pwd -P)
 
 go build && time ./go-mcl-benchmarks -test.benchtime 100x
+# go build && time ./go-mcl-benchmarks -test.benchtime=1ns # This would make it run only once.
