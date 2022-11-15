@@ -132,6 +132,19 @@ func BenchmarkExponentiation(db *map[string]float64) {
 		(*db)[fmt.Sprintf("G1MulVec%d", length)] = float64(results.NsPerOp())
 		(*db)[fmt.Sprintf("G1MulVec%dAvg", length)] = float64(results.NsPerOp()) / float64(length)
 		// =============================================
+		length = 5
+		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.G1
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				mcl.G1MulVec(&result, baseG1[:length], expoFr[:length])
+			}
+		})
+		Summary(1, "G1MulVec", fmt.Sprintf("size %s; ", humanize.Comma(int64(length))), &results)
+		Summary(uint64(length), "G1MulVec", fmt.Sprintf("per exp; "), &results)
+		(*db)[fmt.Sprintf("G1MulVec%d", length)] = float64(results.NsPerOp())
+		(*db)[fmt.Sprintf("G1MulVec%dAvg", length)] = float64(results.NsPerOp()) / float64(length)
+		// =============================================
 		length = 32
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.G1
@@ -210,6 +223,19 @@ func BenchmarkExponentiation(db *map[string]float64) {
 		(*db)["G2Mul"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		length = 2
+		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.G2
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				mcl.G2MulVec(&result, baseG2[:length], expoFr[:length])
+			}
+		})
+		Summary(1, "G2MulVec", fmt.Sprintf("size %s; ", humanize.Comma(int64(length))), &results)
+		Summary(uint64(length), "G2MulVec", fmt.Sprintf("per exp; "), &results)
+		(*db)[fmt.Sprintf("G2MulVec%d", length)] = float64(results.NsPerOp())
+		(*db)[fmt.Sprintf("G2MulVec%dAvg", length)] = float64(results.NsPerOp()) / float64(length)
+		// =============================================
+		length = 5
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.G2
 			t.ResetTimer()
@@ -409,6 +435,19 @@ func BenchmarkPairing(db *map[string]float64) {
 		(*db)[fmt.Sprintf("MillerLoopVec%d", length)] = float64(results.NsPerOp())
 		(*db)[fmt.Sprintf("MillerLoopVec%dAvg", length)] = float64(results.NsPerOp()) / float64(length)
 		// =============================================
+		length = 5
+		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.GT
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				mcl.MillerLoopVec(&result, baseG1[:length], baseG2[:length])
+			}
+		})
+		Summary(1, "MillerLoopVec", fmt.Sprintf("size %s; ", humanize.Comma(int64(length))), &results)
+		Summary(uint64(length), "MillerLoopVec", fmt.Sprintf("per MillerLoop; "), &results)
+		(*db)[fmt.Sprintf("MillerLoopVec%d", length)] = float64(results.NsPerOp())
+		(*db)[fmt.Sprintf("MillerLoopVec%dAvg", length)] = float64(results.NsPerOp()) / float64(length)
+		// =============================================
 		length = 32
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.GT
@@ -448,6 +487,20 @@ func BenchmarkPairing(db *map[string]float64) {
 		(*db)["Pairing"] = float64(results.NsPerOp()) / float64(size[i])
 		// =============================================
 		length = 2
+		results = testing.Benchmark(func(t *testing.B) {
+			var result mcl.GT
+			t.ResetTimer()
+			for i := 0; i < t.N; i++ {
+				mcl.MillerLoopVec(&result, baseG1[:length], baseG2[:length])
+				mcl.FinalExp(&result, &result)
+			}
+		})
+		Summary(1, "Multi-Pairing", fmt.Sprintf("size %s; ", humanize.Comma(int64(length))), &results)
+		Summary(uint64(length), "Multi-Pairing", fmt.Sprintf("per pairing; "), &results)
+		(*db)[fmt.Sprintf("MultiPairing%d", length)] = float64(results.NsPerOp())
+		(*db)[fmt.Sprintf("MultiPairing%dAvg", length)] = float64(results.NsPerOp()) / float64(length)
+		// =============================================
+		length = 5
 		results = testing.Benchmark(func(t *testing.B) {
 			var result mcl.GT
 			t.ResetTimer()
